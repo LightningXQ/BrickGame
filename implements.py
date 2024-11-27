@@ -31,12 +31,17 @@ class Block(Basic):
         self.alive = alive
 
     def draw(self, surface) -> None:
-        pygame.draw.rect(surface, self.color, self.rect)
+        if self.alive:  # alive가 True인 블록만 그림
+            pygame.draw.rect(surface, self.color, self.rect)
     
     def collide(self):
         # ============================================
         # TODO: Implement an event when block collides with a ball
-        pass
+        
+        self.alive = False
+        # 블록이 공에 부딪혔을 때 블록이 없어지는 기능은 Block.draw에서 구현
+        # if self.alive: 
+        #     pygame.draw.rect(surface, self.color, self.rect)
 
 
 class Paddle(Basic):
