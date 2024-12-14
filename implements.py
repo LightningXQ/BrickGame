@@ -43,6 +43,23 @@ class Block(Basic):
         # if self.alive: 
         #     pygame.draw.rect(surface, self.color, self.rect)
 
+class GrayBlock(Block):
+    def __init__(self, pos: tuple = (0,0), hits_required: int = 3):
+        super().__init__((128,128,128), pos)
+        self.hits_required = hits_required
+    
+    def draw(self, surface) -> None:
+        if self.alive:
+            pygame.draw.rect(surface, self.color, self.rect)
+            font = pygame.font.SysFont(None,24)
+            hits_text = font.render(str(self.hits_required), True, (255,255,255))
+            surface.blit(hits_text, (self.rect.centerx - hits_text.get_width
+                                     ()//2 ,self.rect.centery - hits_text.get_height()//2))
+
+    def collide(self):
+        self.hits_required -=1
+        if self.hits_required <= 0:
+            self.alive = False
 
 class Paddle(Basic):
     def __init__(self):
@@ -76,11 +93,18 @@ class Ball(Basic):
         
         for block in blocks:
             if self.rect.colliderect(block.rect) and block.alive:
+            # 충돌 방향 계산
+                if abs(self.rect.bottom - block.rect.top) < abs(self.speed) or abs(self.rect.top - block.rect.bottom) < abs(self.speed):
+                    self.dir = 360 - self.dir  # 위/아래 반사
+                elif abs(self.rect.right - block.rect.left) < abs(self.speed) or abs(self.rect.left - block.rect.right) < abs(self.speed):
+                    self.dir = 180 - self.dir  # 좌/우 반사
+
                 block.collide()
-                if abs(self.rect.bottom - block.rect.top) < 2 * self.speed or abs(self.rect.top - block.rect.bottom) < 2 * self.speed:
-                    self.dir = 360 - self.dir
-                else:
-                    self.dir = 180 - self.dir
+                
+                if isinstance(block, GrayBlock) and block.hits_required > 0:
+                    continue
+                if not block.alive:
+                    blocks.remove(block)
                 break
 
     def collide_paddle(self, paddle: Paddle) -> None:
