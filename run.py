@@ -1,5 +1,6 @@
 import sys
-from implements import Basic, Block, Paddle, Ball
+import random
+from implements import Basic, Block, GrayBlock, Paddle, Ball
 import config
 
 import pygame
@@ -32,7 +33,10 @@ def create_blocks():
             )
             color_index = j % len(config.colors)
             color = config.colors[color_index]
-            block = Block(color, (x, y))
+            if random.random() < 0.3:
+                block = GrayBlock((x,y), hits_required=3)
+            else:
+                block = Block(color, (x, y))
             BLOCKS.append(block)
 
 
@@ -63,11 +67,42 @@ def tick():
             ball.rect.centerx = paddle.rect.centerx
             ball.rect.bottom = paddle.rect.top
 
-        ball.collide_block(BLOCKS)
+        collide_blocks = []
+        for block in BLOCKS:
+            if ball.rect.colliderect(block.rect):
+                collide_blocks.append(block)
+        
+        for block in collide_blocks:
+            # 충돌 방향 계산 및 처리
+            if abs(ball.rect.bottom - block.rect.top) < abs(ball.speed) or abs(ball.rect.top - block.rect.bottom) < abs(ball.speed):
+                ball.dir = 360 - ball.dir  # 위/아래 반사
+            elif abs(ball.rect.right - block.rect.left) < abs(ball.speed) or abs(ball.rect.left - block.rect.right) < abs(ball.speed):
+                ball.dir = 180 - ball.dir  # 좌/우 반사
+
+            block.collide()
+
+            if isinstance(block, GrayBlock) and block.hits_required > 0:
+                continue
+
+            if not block.alive:
+                BLOCKS.remove(block)
+
+            if random.random() < 0.2:
+                color = (255, 0, 0) if random.random() < 0.5 else (0, 0, 255)
+                item = Item(color, block.rect.center)
+                ITEMS.append(item)
+
         ball.collide_paddle(paddle)
         ball.hit_wall()
         if ball.alive() == False:
             BALLS.remove(ball)
+    
+    for item in ITEMS[:]:
+        item.move()
+        if paddle.rect.colliderect(item.rect):
+            ITEMS.remove(item)
+        elif item.rect.top > config.display_dimension[1]:
+            ITEMS.remove(item)
 
 
 def main():
@@ -90,6 +125,9 @@ def main():
 
         for block in BLOCKS:
             block.draw(surface)
+        
+        for item in ITEMS:
+            item.draw(surface)
 
         cur_score = config.num_blocks[0] * config.num_blocks[1] - len(BLOCKS)
 
