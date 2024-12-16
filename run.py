@@ -31,21 +31,19 @@ class Item(Basic):
     def move(self):
         self.rect.move_ip(0, self.speed)
 
+
 def create_blocks():
     for i in range(config.num_blocks[0]):
         for j in range(config.num_blocks[1]):
             x = config.margin[0] + i * (config.block_size[0] + config.spacing[0])
-            y = (
-                config.margin[1]
-                + config.scoreboard_height
-                + j * (config.block_size[1] + config.spacing[1])
-            )
-            color_index = j % len(config.colors)
-            color = config.colors[color_index]
-            if random.random() < 0.3:
-                block = GrayBlock((x,y), hits_required=3)
+            y = config.margin[1] + config.scoreboard_height + j * (config.block_size[1] + config.spacing[1])
+
+            if random.random() < 0.1:  # 10% 확률로 회색 블록 생성
+                block = GrayBlock((x, y))
             else:
-                block = Block(color, (x, y))
+                hits_required = random.randint(1, 3)  # 1~3번 충돌해야 깨지는 블록
+                block = Block((x, y), hits_required=hits_required)
+
             BLOCKS.append(block)
 
 

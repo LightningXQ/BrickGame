@@ -25,41 +25,47 @@ class Basic:
 
 
 class Block(Basic):
-    def __init__(self, color: tuple, pos: tuple = (0,0), alive = True):
-        super().__init__(color, 0, pos, config.block_size)
-        self.pos = pos
-        self.alive = alive
+    def __init__(self, pos: tuple = (0, 0), hits_required: int = 3):
+        super().__init__((255, 0, 0), 0, pos, config.block_size)  # 초기 색상: 빨간색
+        self.hits_required = hits_required
+        self.max_hits = hits_required
+        self.alive = hits_required > 0
+        self.update_color()
+
+    def update_color(self):
+        """블록의 색상을 충돌 횟수에 따라 변경."""
+        if self.hits_required == 3:
+            self.color = (255, 0, 0)  # 빨간색
+        elif self.hits_required == 2:
+            self.color = (255, 165, 0)  # 주황색
+        elif self.hits_required == 1:
+            self.color = (255, 255, 0)  # 노란색
+
 
     def draw(self, surface) -> None:
-        if self.alive:  # alive가 True인 블록만 그림
+        if self.hits_required > 0:  # 남은 충돌 횟수가 있을 때만 그리기
             pygame.draw.rect(surface, self.color, self.rect)
-    
+
     def collide(self):
         # ============================================
         # TODO: Implement an event when block collides with a ball
-        
-        self.alive = False
+        if self.hits_required > 0:
+            self.hits_required -= 1
+            self.update_color()
+            if self.hits_required == 0:
+                self.alive = False
         # 블록이 공에 부딪혔을 때 블록이 없어지는 기능은 Block.draw에서 구현
         # if self.alive: 
         #     pygame.draw.rect(surface, self.color, self.rect)
 
 class GrayBlock(Block):
-    def __init__(self, pos: tuple = (0,0), hits_required: int = 3):
-        super().__init__((128,128,128), pos)
-        self.hits_required = hits_required
-    
-    def draw(self, surface) -> None:
-        if self.alive:
-            pygame.draw.rect(surface, self.color, self.rect)
-            font = pygame.font.SysFont(None,24)
-            hits_text = font.render(str(self.hits_required), True, (255,255,255))
-            surface.blit(hits_text, (self.rect.centerx - hits_text.get_width
-                                     ()//2 ,self.rect.centery - hits_text.get_height()//2))
+    def __init__(self, pos: tuple = (0, 0)):
+        super().__init__(pos, hits_required=float('inf'))  # 무한 충돌
+        self.color = (128, 128, 128)  # 회색
 
     def collide(self):
-        self.hits_required -=1
-        if self.hits_required <= 0:
-            self.alive = False
+        """회색 블록은 충돌해도 상태 변화 없음."""
+        pass  # 충돌해도 아무 변화 없음
 
 class Paddle(Basic):
     def __init__(self):
