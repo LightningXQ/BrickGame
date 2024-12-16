@@ -35,7 +35,7 @@ https://www.python.org/downloads/
 ### 실행 화면
 
 ![image](https://github.com/user-attachments/assets/6ba6e423-2b0a-49d2-ba08-a351dfd87583)
-공이 벽돌에 충돌하면 벽돌이 제거됩니다.
+공이 벽돌에 충돌하면 벽돌이 제거됩니다.  
 벽돌이 모두 제거되면 승리합니다.
 
 ### 제작 및 기여
