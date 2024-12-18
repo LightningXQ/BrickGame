@@ -25,24 +25,47 @@ class Basic:
 
 
 class Block(Basic):
-    def __init__(self, color: tuple, pos: tuple = (0,0), alive = True):
-        super().__init__(color, 0, pos, config.block_size)
-        self.pos = pos
-        self.alive = alive
+    def __init__(self, pos: tuple = (0, 0), hits_required: int = 3):
+        super().__init__((255, 0, 0), 0, pos, config.block_size)  # 초기 색상: 빨간색
+        self.hits_required = hits_required
+        self.max_hits = hits_required
+        self.alive = hits_required > 0
+        self.update_color()
+
+    def update_color(self):
+        """블록의 색상을 충돌 횟수에 따라 변경."""
+        if self.hits_required == 3:
+            self.color = (255, 0, 0)  # 빨간색
+        elif self.hits_required == 2:
+            self.color = (255, 165, 0)  # 주황색
+        elif self.hits_required == 1:
+            self.color = (255, 255, 0)  # 노란색
+
 
     def draw(self, surface) -> None:
-        if self.alive:  # alive가 True인 블록만 그림
+        if self.hits_required > 0:  # 남은 충돌 횟수가 있을 때만 그리기
             pygame.draw.rect(surface, self.color, self.rect)
-    
+
     def collide(self):
         # ============================================
         # TODO: Implement an event when block collides with a ball
-        
-        self.alive = False
+        if self.hits_required > 0:
+            self.hits_required -= 1
+            self.update_color()
+            if self.hits_required == 0:
+                self.alive = False
         # 블록이 공에 부딪혔을 때 블록이 없어지는 기능은 Block.draw에서 구현
         # if self.alive: 
         #     pygame.draw.rect(surface, self.color, self.rect)
 
+class GrayBlock(Block):
+    def __init__(self, pos: tuple = (0, 0)):
+        super().__init__(pos, hits_required=float('inf'))  # 무한 충돌
+        self.color = (128, 128, 128)  # 회색
+
+    def collide(self):
+        """회색 블록은 충돌해도 상태 변화 없음."""
+        pass  # 충돌해도 아무 변화 없음
 
 class Paddle(Basic):
     def __init__(self):
@@ -76,11 +99,18 @@ class Ball(Basic):
         
         for block in blocks:
             if self.rect.colliderect(block.rect) and block.alive:
+            # 충돌 방향 계산
+                if abs(self.rect.bottom - block.rect.top) < abs(self.speed) or abs(self.rect.top - block.rect.bottom) < abs(self.speed):
+                    self.dir = 360 - self.dir  # 위/아래 반사
+                elif abs(self.rect.right - block.rect.left) < abs(self.speed) or abs(self.rect.left - block.rect.right) < abs(self.speed):
+                    self.dir = 180 - self.dir  # 좌/우 반사
+
                 block.collide()
-                if abs(self.rect.bottom - block.rect.top) < 2 * self.speed or abs(self.rect.top - block.rect.bottom) < 2 * self.speed:
-                    self.dir = 360 - self.dir
-                else:
-                    self.dir = 180 - self.dir
+                
+                if isinstance(block, GrayBlock) and block.hits_required > 0:
+                    continue
+                if not block.alive:
+                    blocks.remove(block)
                 break
 
     def collide_paddle(self, paddle: Paddle) -> None:
