@@ -147,8 +147,6 @@ def main():
             for block in BLOCKS:
                 block.draw(surface)
 
-        pygame.display.update()
-        fps_clock.tick(config.fps)
 
         pygame.display.update()
         fps_clock.tick(config.fps)
