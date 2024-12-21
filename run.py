@@ -137,7 +137,7 @@ def main():
                 start = False
             else:
                 surface.blit(mess_over, (200, 300))
-        elif all(not isinstance(block, GrayBlock) and not block.alive for block in BLOCKS):
+        elif all(isinstance(block, GrayBlock) or not block.alive for block in BLOCKS):
             surface.blit(mess_clear, (200, 400))
         else:
             for ball in BALLS:
@@ -146,6 +146,9 @@ def main():
                 ball.draw(surface)
             for block in BLOCKS:
                 block.draw(surface)
+
+        pygame.display.update()
+        fps_clock.tick(config.fps)
 
         pygame.display.update()
         fps_clock.tick(config.fps)
