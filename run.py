@@ -137,7 +137,7 @@ def main():
                 start = False
             else:
                 surface.blit(mess_over, (200, 300))
-        elif all(block.alive == False for block in BLOCKS):
+        elif all(not isinstance(block, GrayBlock) and not block.alive for block in BLOCKS):
             surface.blit(mess_clear, (200, 400))
         else:
             for ball in BALLS:
