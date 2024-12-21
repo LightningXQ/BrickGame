@@ -1,11 +1,10 @@
 import sys
 import random
-from implements import Basic, Block, GrayBlock, Paddle, Ball
+from implements import Basic, Block, GrayBlock, Paddle, Ball, Item
 import config
 
 import pygame
 from pygame.locals import QUIT, Rect, K_ESCAPE, K_SPACE
-
 
 pygame.init()
 pygame.key.set_repeat(3, 3)
@@ -21,17 +20,6 @@ BALLS = [ball1]
 life = config.life
 start = False
 
-class Item(Basic):
-    def __init__(self, color: tuple, pos: tuple):
-        super().__init__(color, config.display_dimension[1] // 100, pos, config.item_size)
-
-    def draw(self, surface):
-        pygame.draw.ellipse(surface, self.color, self.rect)
-
-    def move(self):
-        self.rect.move_ip(0, self.speed)
-
-
 def create_blocks():
     for i in range(config.num_blocks[0]):
         for j in range(config.num_blocks[1]):
@@ -45,7 +33,6 @@ def create_blocks():
                 block = Block((x, y), hits_required=hits_required)
 
             BLOCKS.append(block)
-
 
 def tick():
     global life
@@ -80,7 +67,6 @@ def tick():
                 collide_blocks.append(block)
         
         for block in collide_blocks:
-            # 충돌 방향 계산 및 처리
             if abs(ball.rect.bottom - block.rect.top) < abs(ball.speed) or abs(ball.rect.top - block.rect.bottom) < abs(ball.speed):
                 ball.dir = 360 - ball.dir  # 위/아래 반사
             elif abs(ball.rect.right - block.rect.left) < abs(ball.speed) or abs(ball.rect.left - block.rect.right) < abs(ball.speed):
@@ -101,7 +87,7 @@ def tick():
 
         ball.collide_paddle(paddle)
         ball.hit_wall()
-        if ball.alive() == False:
+        if not ball.alive():
             BALLS.remove(ball)
     
     for item in ITEMS[:]:
@@ -110,7 +96,6 @@ def tick():
             ITEMS.remove(item)
         elif item.rect.top > config.display_dimension[1]:
             ITEMS.remove(item)
-
 
 def main():
     global life
@@ -152,19 +137,19 @@ def main():
                 start = False
             else:
                 surface.blit(mess_over, (200, 300))
-        elif all(block.alive == False for block in BLOCKS):
+        elif all(isinstance(block, GrayBlock) or not block.alive for block in BLOCKS):
             surface.blit(mess_clear, (200, 400))
         else:
             for ball in BALLS:
-                if start == True:
+                if start:
                     ball.move()
                 ball.draw(surface)
             for block in BLOCKS:
                 block.draw(surface)
 
+
         pygame.display.update()
         fps_clock.tick(config.fps)
-
 
 if __name__ == "__main__":
     main()
